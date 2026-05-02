@@ -1,3 +1,27 @@
+v0.3.14
+=======
++ fix when start of requested region off end of chrom (#266 thanks @roland-ewald for very nice test-case)
+
+v0.3.13
+=======
++ explicitly set index type to BED (#260)
+
+v0.3.12
+=======
++ update htslib to support CRAM v3.1
+
+v0.3.11
+=======
++ add --fragment-mode (#246 from @LudvigOlsen). calculates coverage over a full fragment, including insert.
+
+v0.3.10
+=======
++ write sfi index in d4 files (#243)
+
+v0.3.9
+======
++ fix d4 output (#237)
+
 v0.3.8
 ======
 + mosdepth is now much faster on bams/crams with a large number of contigs (#229)

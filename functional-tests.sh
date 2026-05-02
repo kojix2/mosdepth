@@ -12,8 +12,8 @@ set -o nounset
 
 
 set -e
-nim c --boundChecks:on -x:on mosdepth.nim
-nim c -r tests/funcs.nim
+nim c -a --boundChecks:on -x:on -d:useSysAssert -d:useGcAssert --lineDir:on --debuginfo --mm:refc mosdepth.nim
+nim c -a -x:on --mm:refc -d:useSysAssert -d:useGcAssert --lineDir:on --debuginfo -r tests/funcs.nim
 set +e
 exe=./mosdepth
 bam=/data/human/NA12878.subset.bam
@@ -53,6 +53,9 @@ assert_equal $(zcat < t.regions.bed.gz | wc -l) 2
 run missing_bed_chrom $exe --by tests/missing.bed t tests/ovl.bam
 assert_exit_code 0
 
+run bed_start_past_chrom_end $exe -n --by tests/chrom-end/region-not-ok.bed t tests/chrom-end/minimal.bam
+assert_exit_code 0
+
 run big_window $exe t tests/ovl.bam --by 100000000
 assert_exit_code 0
 assert_equal $(zgrep -c "MT" t.per-base.bed.gz) 2
@@ -76,6 +79,20 @@ assert_equal "MT	0	16569	0" "$(zgrep ^MT t.per-base.bed.gz)"
 run bad_frag_len_filter $exe t tests/ovl.bam --min-frag-len 10 --max-frag-len 9
 assert_in_stderr "--max-frag-len was lower than --min-frag-len."
 assert_exit_code 2
+
+
+# fragment-mode
+run fragment_mode $exe t --fragment-mode tests/full-fragment-pairs.bam
+assert_equal "$(zcat < t.per-base.bed.gz)" "chr22:20000000-23000000	0	17318	0
+chr22:20000000-23000000	17318	17320	1
+chr22:20000000-23000000	17320	17420	2
+chr22:20000000-23000000	17420	17756	1
+chr22:20000000-23000000	17756	52130	0
+chr22:20000000-23000000	52130	52135	1
+chr22:20000000-23000000	52135	52235	2
+chr22:20000000-23000000	52235	52546	1
+chr22:20000000-23000000	52546	3000001	0"
+assert_exit_code 0
 
 
 unset MOSDEPTH_Q0
@@ -182,7 +199,6 @@ assert_exit_code 0
 run check_exit_code_on_bad_args $exe -t4prefix sample.bam
 assert_exit_code 1
 assert_in_stderr "error parsing arguments"
-
 
 
 
